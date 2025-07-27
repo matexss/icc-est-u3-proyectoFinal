@@ -11,14 +11,14 @@ import java.awt.event.MouseEvent;
 
 public class MazePanel extends JPanel {
 
-    private static final int SIZE = 40; // Tamaño visual por celda
+    private static final int SIZE = 40;
     private int filas = 10;
     private int columnas = 10;
 
     private CellState[][] grid;
     private Cell inicio, fin;
 
-    private String modoActual = "wall"; // "start", "end", "wall"
+    private String modoActual = "wall";
 
     public MazePanel() {
         solicitarTamanioLaberinto();
@@ -47,8 +47,8 @@ public class MazePanel extends JPanel {
 
     private void solicitarTamanioLaberinto() {
         try {
-            String inputFilas = JOptionPane.showInputDialog(null, "Ingrese número de filas:", "Entrada", JOptionPane.QUESTION_MESSAGE);
-            String inputCols = JOptionPane.showInputDialog(null, "Ingrese número de columnas:", "Entrada", JOptionPane.QUESTION_MESSAGE);
+            String inputFilas = JOptionPane.showInputDialog(null, "Ingrese número de filas:", "Tamaño del laberinto", JOptionPane.QUESTION_MESSAGE);
+            String inputCols = JOptionPane.showInputDialog(null, "Ingrese número de columnas:", "Tamaño del laberinto", JOptionPane.QUESTION_MESSAGE);
 
             filas = Math.max(2, Integer.parseInt(inputFilas));
             columnas = Math.max(2, Integer.parseInt(inputCols));
@@ -141,25 +141,37 @@ public class MazePanel extends JPanel {
     }
 
     public void resetear() {
-        inicializarGrid();
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                if (grid[i][j] != CellState.WALL) {
+                    grid[i][j] = CellState.EMPTY;
+                }
+            }
+        }
+        if (inicio != null) grid[inicio.getRow()][inicio.getCol()] = CellState.START;
+        if (fin != null) grid[fin.getRow()][fin.getCol()] = CellState.END;
+
         repaint();
     }
 
     public void mostrarResultado(SolveResults resultado) {
         resetear();
 
+        // Pintar visitados primero
         for (Cell cell : resultado.getVisited()) {
             if (!cell.equals(inicio) && !cell.equals(fin)) {
                 grid[cell.getRow()][cell.getCol()] = CellState.VISITED;
             }
         }
 
+        // Pintar camino después (sobrescribe VISITED si coinciden)
         for (Cell cell : resultado.getPath()) {
             if (!cell.equals(inicio) && !cell.equals(fin)) {
                 grid[cell.getRow()][cell.getCol()] = CellState.PATH;
             }
         }
 
+        // Reafirmar posiciones de inicio y fin
         if (inicio != null) grid[inicio.getRow()][inicio.getCol()] = CellState.START;
         if (fin != null) grid[fin.getRow()][fin.getCol()] = CellState.END;
 

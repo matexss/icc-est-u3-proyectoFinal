@@ -21,10 +21,11 @@ public class MazeApp {
             // Registrar algoritmos disponibles
             controller.registrarAlgoritmo("DFS", new MazeSolverDFS());
             controller.registrarAlgoritmo("BFS", new MazeSolverBFS());
-            controller.registrarAlgoritmo("Recursivo", new MazeSolverRecursivo());
-            controller.registrarAlgoritmo("Recursivo Completo", new MazeSolverRecursivoCompleto());
-            controller.registrarAlgoritmo("Recursivo Backtracking", new MazeSolverRecursivoCompletoBT());
-            controller.registrarAlgoritmo("Programación Dinámica", new MazeSolverPD());
+            controller.registrarAlgoritmo("RECURSIVO", new MazeSolverRecursivo());
+            controller.registrarAlgoritmo("RECURSIVO COMPLETO", new MazeSolverRecursivoCompleto());
+            controller.registrarAlgoritmo("RECURSIVO COMPLETO BT", new MazeSolverRecursivoCompletoBT());
+            controller.registrarAlgoritmo("BACKTRACKING", new MazeSolverBacktracking());
+
 
             // Lanzar la interfaz gráfica
             new MazeFrame(controller);

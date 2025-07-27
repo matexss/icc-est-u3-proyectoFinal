@@ -21,7 +21,7 @@ public class ResultadosDialog extends JDialog {
         this.controller = controller;
 
         setLayout(new BorderLayout());
-        setSize(700, 500);
+        setSize(700, 700);
         setLocationRelativeTo(parent);
 
         initComponents();

@@ -7,7 +7,6 @@ import models.SolveResults;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.List;
 
 public class MazeFrame extends JFrame {
 
@@ -20,7 +19,6 @@ public class MazeFrame extends JFrame {
         this.controller = controller;
         initComponents();
     }
-
     private void initComponents() {
         setTitle("Resolución de Laberintos");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -34,7 +32,12 @@ public class MazeFrame extends JFrame {
         JPanel topPanel = new JPanel(new FlowLayout());
 
         comboAlgoritmos = new JComboBox<>();
-        controller.obtenerNombresAlgoritmos().forEach(comboAlgoritmos::addItem);
+        comboAlgoritmos.addItem("DFS");
+        comboAlgoritmos.addItem("BFS");
+        comboAlgoritmos.addItem("RECURSIVO");
+        comboAlgoritmos.addItem("RECURSIVO COMPLETO");
+        comboAlgoritmos.addItem("RECURSIVO COMPLETO BT");
+        comboAlgoritmos.addItem("BACKTRACKING");
 
         btnInicio = new JButton("Set Start");
         btnFin = new JButton("Set End");
