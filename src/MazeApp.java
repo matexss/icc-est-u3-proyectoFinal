@@ -27,6 +27,7 @@ public class MazeApp {
             controller.registrarAlgoritmo("RECURSIVO", new MazeSolverRecursivo());
             controller.registrarAlgoritmo("RECURSIVO COMPLETO", new MazeSolverRecursivoCompleto());
             controller.registrarAlgoritmo("RECURSIVO COMPLETO BT", new MazeSolverRecursivoCompletoBT());
+            controller.registrarAlgoritmo("BACKTRACKING", new MazeSolverRecursivoCompletoBT());
 
             new MazeFrame(controller, panel);
         });
