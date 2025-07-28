@@ -15,7 +15,6 @@ public class MazeApp {
             // Inicializar DAO
             AlgorithmResultDAO resultDAO = new AlgorithmResultDAOFile();
 
-            // Crear panel del laberinto (internamente solicita tamaño)
             MazePanel panel = new MazePanel();
 
             // Crear controlador

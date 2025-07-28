@@ -1,60 +1,48 @@
 package solver.solverImpl;
 
+import models.Cell;
+import models.CellState;
+import models.SolveResults;
 import solver.MazeSolver;
-import models.*;
 
 import java.util.*;
 
-/**
- * Implementación del algoritmo DFS (iterativo) para resolver laberintos.
- */
 public class MazeSolverDFS implements MazeSolver {
+    private Set<Cell> visited = new LinkedHashSet<>();
+    private List<Cell> path = new ArrayList<>();
 
     @Override
     public SolveResults getPath(Cell[][] maze, Cell start, Cell end) {
-        int rows = maze.length;
-        int cols = maze[0].length;
-        boolean[][] visitedMatrix = new boolean[rows][cols];
-        Map<Cell, Cell> parent = new HashMap<>();
-        Stack<Cell> stack = new Stack<>();
-        List<Cell> visited = new ArrayList<>();
+        visited.clear();
+        path.clear();
+        dfs(maze, start.getRow(), start.getCol(), end);
+        return new SolveResults(path, visited);
+    }
 
-        stack.push(start);
-        visitedMatrix[start.getRow()][start.getCol()] = true;
+    private boolean dfs(Cell[][] maze, int r, int c, Cell end) {
+        if (!isValid(maze, r, c)) return false;
 
-        while (!stack.isEmpty()) {
-            Cell current = stack.pop();
-            visited.add(current);
+        Cell cell = maze[r][c];
+        if (visited.contains(cell)) return false;
 
-            if (current.equals(end)) break;
+        visited.add(cell);
 
-            for (int[] dir : new int[][]{{1,0},{-1,0},{0,1},{0,-1}}) {
-                int r = current.getRow() + dir[0];
-                int c = current.getCol() + dir[1];
-
-                if (r >= 0 && r < rows && c >= 0 && c < cols && !visitedMatrix[r][c] && maze[r][c].getState() != CellState.WALL) {
-                    Cell neighbor = maze[r][c];
-                    visitedMatrix[r][c] = true;
-                    parent.put(neighbor, current);
-                    stack.push(neighbor);
-                }
-            }
+        if (cell.equals(end)) {
+            path.add(cell);
+            return true;
         }
 
-        List<Cell> path = new ArrayList<>();
-        Cell current = end;
-        while (parent.containsKey(current)) {
-            path.add(current);
-            current = parent.get(current);
+        if (dfs(maze, r + 1, c, end) || dfs(maze, r - 1, c, end)
+                || dfs(maze, r, c + 1, end) || dfs(maze, r, c - 1, end)) {
+            path.add(cell);
+            return true;
         }
 
-        if (current.equals(start)) {
-            path.add(start);
-            Collections.reverse(path);
-        } else {
-            path.clear();
-        }
+        return false;
+    }
 
-        return new SolveResults(path, new HashSet<>(visited));
+    private boolean isValid(Cell[][] maze, int r, int c) {
+        return r >= 0 && r < maze.length && c >= 0 && c < maze[0].length
+                && maze[r][c].getState() != CellState.WALL;
     }
 }

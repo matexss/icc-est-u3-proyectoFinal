@@ -109,32 +109,54 @@ public class MazePanel extends JPanel {
     public void mostrarResultado(SolveResults resultado) {
         limpiarCeldasVisitadas();
 
-        for (Cell cell : resultado.getVisited()) {
-            if (cell != null && !cell.equals(controller.getStartCell()) && !cell.equals(controller.getEndCell())) {
-                cells[cell.getRow()][cell.getCol()].setState(CellState.VISITED);
+        new Thread(() -> {
+            // Mostrar visitados uno a uno
+            for (Cell cell : resultado.getVisited()) {
+                if (cell == null || cell.equals(controller.getStartCell()) || cell.equals(controller.getEndCell()))
+                    continue;
+
+                SwingUtilities.invokeLater(() -> {
+                    cells[cell.getRow()][cell.getCol()].setState(CellState.VISITED);
+                    buttons[cell.getRow()][cell.getCol()].setBackground(Color.CYAN);
+                    buttons[cell.getRow()][cell.getCol()].repaint();
+                });
+
+                try {
+                    Thread.sleep(20); // Velocidad animación
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
-        }
 
-        for (Cell cell : resultado.getPath()) {
-            if (cell != null && !cell.equals(controller.getStartCell()) && !cell.equals(controller.getEndCell())) {
-                cells[cell.getRow()][cell.getCol()].setState(CellState.PATH);
+            // Pausa entre recorrido y camino
+            try {
+                Thread.sleep(150);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-        }
 
-        // Asegurar que inicio y fin sigan pintados correctamente
-        if (controller.getStartCell() != null) {
-            Cell s = controller.getStartCell();
-            cells[s.getRow()][s.getCol()].setState(CellState.START);
-        }
+            // Mostrar camino final
+            for (Cell cell : resultado.getPath()) {
+                if (cell == null || cell.equals(controller.getStartCell()) || cell.equals(controller.getEndCell()))
+                    continue;
 
-        if (controller.getEndCell() != null) {
-            Cell e = controller.getEndCell();
-            cells[e.getRow()][e.getCol()].setState(CellState.END);
-        }
+                SwingUtilities.invokeLater(() -> {
+                    cells[cell.getRow()][cell.getCol()].setState(CellState.PATH);
+                    buttons[cell.getRow()][cell.getCol()].setBackground(Color.BLUE);
+                    buttons[cell.getRow()][cell.getCol()].repaint();
+                });
 
-        actualizarVisual();
+                try {
+                    Thread.sleep(30); // Velocidad animación
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            // Repintar inicio y fin al final
+            SwingUtilities.invokeLater(this::actualizarInicioYFin);
+        }).start();
     }
-
 
     public void resetear() {
         for (int i = 0; i < filas; i++) {
@@ -167,15 +189,22 @@ public class MazePanel extends JPanel {
     }
 
 
-
     private void actualizarInicioYFin() {
         if (controller.getStartCell() != null) {
             Cell s = controller.getStartCell();
-            buttons[s.getRow()][s.getCol()].setBackground(Color.GREEN);
+            cells[s.getRow()][s.getCol()].setState(CellState.START);
+            JButton b = buttons[s.getRow()][s.getCol()];
+            b.setBackground(Color.GREEN);
+            b.repaint();
         }
         if (controller.getEndCell() != null) {
             Cell e = controller.getEndCell();
-            buttons[e.getRow()][e.getCol()].setBackground(Color.RED);
+            cells[e.getRow()][e.getCol()].setState(CellState.END);
+            JButton b = buttons[e.getRow()][e.getCol()];
+            b.setBackground(Color.RED);
+            b.repaint();
         }
     }
+
+
 }

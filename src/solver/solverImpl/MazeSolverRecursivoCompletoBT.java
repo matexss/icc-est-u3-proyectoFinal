@@ -1,61 +1,48 @@
 package solver.solverImpl;
 
+import models.Cell;
+import models.CellState;
+import models.SolveResults;
 import solver.MazeSolver;
-import models.*;
 
 import java.util.*;
 
-/**
- * Algoritmo recursivo completo con backtracking real: explora todas las rutas posibles y retrocede correctamente.
- */
 public class MazeSolverRecursivoCompletoBT implements MazeSolver {
-
-    private Set<Cell> visited;
-    private List<Cell> path;
-    private Cell[][] maze;
-    private Cell end;
+    private Set<Cell> visited = new LinkedHashSet<>();
+    private List<Cell> path = new ArrayList<>();
 
     @Override
     public SolveResults getPath(Cell[][] maze, Cell start, Cell end) {
-        this.visited = new LinkedHashSet<>();
-        this.path = new ArrayList<>();
-        this.maze = maze;
-        this.end = end;
-
-        boolean encontrado = findPath(start);
-
-        if (!encontrado) path.clear();  // si no se encuentra camino
-        Collections.reverse(path);      // el camino fue construido al revés
-
+        visited.clear();
+        path.clear();
+        findPath(maze, start.getRow(), start.getCol(), end);
+        Collections.reverse(path);
         return new SolveResults(path, visited);
     }
 
-    private boolean findPath(Cell current) {
-        int r = current.getRow();
-        int c = current.getCol();
+    private boolean findPath(Cell[][] maze, int r, int c, Cell end) {
+        if (!isValid(maze, r, c)) return false;
 
-        if (!isValid(r, c) || visited.contains(current)) return false;
+        Cell cell = maze[r][c];
+        if (visited.contains(cell)) return false;
 
-        visited.add(current);
-        path.add(current);
+        visited.add(cell);
+        path.add(cell);
 
-        if (current.equals(end)) return true;
+        if (cell.equals(end)) return true;
 
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] dir : dirs) {
-            int nr = r + dir[0], nc = c + dir[1];
-            if (nr >= 0 && nr < maze.length && nc >= 0 && nc < maze[0].length) {
-                if (findPath(maze[nr][nc])) return true;
-            }
+        if (findPath(maze, r + 1, c, end) || findPath(maze, r, c + 1, end)
+                || findPath(maze, r - 1, c, end) || findPath(maze, r, c - 1, end)) {
+            return true;
         }
 
-        // Retroceso real
         path.remove(path.size() - 1);
-        visited.remove(current);
+        visited.remove(cell);
         return false;
     }
 
-    private boolean isValid(int r, int c) {
-        return maze[r][c].getState() != CellState.WALL;
+    private boolean isValid(Cell[][] maze, int r, int c) {
+        return r >= 0 && r < maze.length && c >= 0 && c < maze[0].length
+                && maze[r][c].getState() != CellState.WALL;
     }
 }
