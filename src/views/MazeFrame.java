@@ -4,7 +4,7 @@ import controllers.MazeController;
 import controllers.MazeController.Mode;
 import models.Cell;
 import models.SolveResults;
-
+import models.CellState;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -127,12 +127,15 @@ public class MazeFrame extends JFrame {
             }
         } else if (pasoIndex < pasoVisitados.size()) {
             Cell c = pasoVisitados.get(pasoIndex++);
-            mazePanel.pintarPaso(c.getRow(), c.getCol(), Color.CYAN);
+            mazePanel.getCells()[c.getRow()][c.getCol()].setState(CellState.VISITED);
+            mazePanel.actualizarVisual();
         } else if (pasoIndex - pasoVisitados.size() < pasoCamino.size()) {
             int idx = pasoIndex - pasoVisitados.size();
             Cell c = pasoCamino.get(idx);
             pasoIndex++;
-            mazePanel.pintarPaso(c.getRow(), c.getCol(), Color.BLUE);
+            mazePanel.getCells()[c.getRow()][c.getCol()].setState(CellState.PATH);
+            mazePanel.actualizarVisual();
+
         } else {
             JOptionPane.showMessageDialog(this, "Paso a paso finalizado.");
             limpiarPasoAPaso();

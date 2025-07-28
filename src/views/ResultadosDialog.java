@@ -8,10 +8,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Diálogo para visualizar los resultados de los algoritmos ejecutados,
- * incluyendo una tabla y un gráfico de barras de tiempo de ejecución.
- */
+
 public class ResultadosDialog extends JDialog {
 
     private final MazeController controller;
@@ -25,7 +22,7 @@ public class ResultadosDialog extends JDialog {
         this.controller = controller;
 
         setLayout(new BorderLayout());
-        setSize(750, 500);
+        setSize(950, 500);
         setLocationRelativeTo(parent);
 
         initComponents();

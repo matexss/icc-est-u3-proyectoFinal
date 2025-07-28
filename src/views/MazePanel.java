@@ -70,7 +70,7 @@ public class MazePanel extends JPanel {
                     public void mousePressed(MouseEvent e) {
                         if (controller != null) {
                             controller.onCellClicked(fila, col);
-                            actualizarVista(); // Refrescar vista al interactuar
+                            actualizarVisual(); // Refrescar vista al interactuar
                         }
                     }
                 });
@@ -112,52 +112,61 @@ public class MazePanel extends JPanel {
         for (Cell cell : resultado.getVisited()) {
             if (cell != null && !cell.equals(controller.getStartCell()) && !cell.equals(controller.getEndCell())) {
                 cells[cell.getRow()][cell.getCol()].setState(CellState.VISITED);
-                buttons[cell.getRow()][cell.getCol()].setBackground(Color.CYAN);
             }
         }
 
         for (Cell cell : resultado.getPath()) {
             if (cell != null && !cell.equals(controller.getStartCell()) && !cell.equals(controller.getEndCell())) {
                 cells[cell.getRow()][cell.getCol()].setState(CellState.PATH);
-                buttons[cell.getRow()][cell.getCol()].setBackground(Color.BLUE);
             }
         }
 
-        actualizarInicioYFin();
+        // Asegurar que inicio y fin sigan pintados correctamente
+        if (controller.getStartCell() != null) {
+            Cell s = controller.getStartCell();
+            cells[s.getRow()][s.getCol()].setState(CellState.START);
+        }
+
+        if (controller.getEndCell() != null) {
+            Cell e = controller.getEndCell();
+            cells[e.getRow()][e.getCol()].setState(CellState.END);
+        }
+
+        actualizarVisual();
     }
 
-    public void pintarPaso(int fila, int columna, Color color) {
-        buttons[fila][columna].setBackground(color);
-    }
 
     public void resetear() {
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
-                Cell cell = cells[i][j];
-                if (cell.getState() != CellState.WALL) {
-                    cell.setState(CellState.EMPTY);
-                    buttons[i][j].setBackground(Color.WHITE);
+                if (cells[i][j].getState() != CellState.WALL) {
+                    cells[i][j].setState(CellState.EMPTY);
                 }
             }
         }
-        actualizarInicioYFin();
+        actualizarVisual();
     }
 
-    private void actualizarVista() {
-        for (int i = 0; i < filas; i++) {
-            for (int j = 0; j < columnas; j++) {
+
+    public void actualizarVisual() {
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[0].length; j++) {
                 Cell cell = cells[i][j];
+                JButton button = buttons[i][j];
+
                 switch (cell.getState()) {
-                    case EMPTY -> buttons[i][j].setBackground(Color.WHITE);
-                    case WALL -> buttons[i][j].setBackground(Color.BLACK);
-                    case START -> buttons[i][j].setBackground(Color.GREEN);
-                    case END -> buttons[i][j].setBackground(Color.RED);
-                    case PATH -> buttons[i][j].setBackground(Color.BLUE);
-                    case VISITED -> buttons[i][j].setBackground(Color.CYAN);
+                    case EMPTY -> button.setBackground(Color.WHITE);
+                    case WALL -> button.setBackground(Color.BLACK);
+                    case START -> button.setBackground(Color.GREEN);
+                    case END -> button.setBackground(Color.RED);
+                    case VISITED -> button.setBackground(Color.CYAN);
+                    case PATH -> button.setBackground(Color.BLUE);
                 }
             }
         }
     }
+
+
 
     private void actualizarInicioYFin() {
         if (controller.getStartCell() != null) {
