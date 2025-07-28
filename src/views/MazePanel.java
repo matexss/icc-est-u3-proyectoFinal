@@ -1,5 +1,6 @@
 package views;
 
+import controllers.MazeController;
 import models.Cell;
 import models.CellState;
 import models.SolveResults;
@@ -9,172 +10,163 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+/**
+ * Panel visual del laberinto con celdas graficadas.
+ */
 public class MazePanel extends JPanel {
 
     private static final int SIZE = 40;
     private int filas = 10;
     private int columnas = 10;
 
-    private CellState[][] grid;
-    private Cell inicio, fin;
-
-    private String modoActual = "wall";
+    private Cell[][] cells;
+    private JButton[][] buttons;
+    private MazeController controller;
 
     public MazePanel() {
         solicitarTamanioLaberinto();
-        inicializarGrid();
-
+        inicializarCeldas();
+        setLayout(new GridLayout(filas, columnas));
         setPreferredSize(new Dimension(columnas * SIZE, filas * SIZE));
-
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                int fila = e.getY() / SIZE;
-                int col = e.getX() / SIZE;
-
-                if (!dentroDelLaberinto(fila, col)) return;
-
-                switch (modoActual) {
-                    case "start" -> establecerInicio(fila, col);
-                    case "end" -> establecerFin(fila, col);
-                    case "wall" -> alternarPared(fila, col);
-                }
-
-                repaint();
-            }
-        });
+        inicializarBotones();
     }
 
     private void solicitarTamanioLaberinto() {
         try {
             String inputFilas = JOptionPane.showInputDialog(null, "Ingrese número de filas:", "Tamaño del laberinto", JOptionPane.QUESTION_MESSAGE);
             String inputCols = JOptionPane.showInputDialog(null, "Ingrese número de columnas:", "Tamaño del laberinto", JOptionPane.QUESTION_MESSAGE);
-
-            filas = Math.max(2, Integer.parseInt(inputFilas));
-            columnas = Math.max(2, Integer.parseInt(inputCols));
+            filas = Math.max(5, Integer.parseInt(inputFilas.trim()));
+            columnas = Math.max(5, Integer.parseInt(inputCols.trim()));
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Entrada inválida. Usando tamaño por defecto 10x10.");
             filas = columnas = 10;
         }
     }
 
-    private boolean dentroDelLaberinto(int fila, int col) {
-        return fila >= 0 && fila < filas && col >= 0 && col < columnas;
-    }
-
-    private void inicializarGrid() {
-        grid = new CellState[filas][columnas];
+    private void inicializarCeldas() {
+        cells = new Cell[filas][columnas];
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
-                grid[i][j] = CellState.EMPTY;
+                cells[i][j] = new Cell(i, j);
+                cells[i][j].setState(CellState.EMPTY);
             }
         }
-        inicio = null;
-        fin = null;
     }
 
-    public void setModo(String modo) {
-        this.modoActual = modo;
-    }
+    private void inicializarBotones() {
+        buttons = new JButton[filas][columnas];
 
-    private void establecerInicio(int fila, int col) {
-        if (inicio != null) {
-            grid[inicio.getRow()][inicio.getCol()] = CellState.EMPTY;
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                JButton btn = new JButton();
+                btn.setBackground(Color.WHITE);
+                btn.setOpaque(true);
+                btn.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+                final int fila = i;
+                final int col = j;
+
+                btn.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        if (controller != null) {
+                            controller.onCellClicked(fila, col);
+                            actualizarVista(); // Refrescar vista al interactuar
+                        }
+                    }
+                });
+
+                buttons[i][j] = btn;
+                add(btn);
+            }
         }
-        inicio = new Cell(fila, col);
-        grid[fila][col] = CellState.START;
     }
 
-    private void establecerFin(int fila, int col) {
-        if (fin != null) {
-            grid[fin.getRow()][fin.getCol()] = CellState.EMPTY;
-        }
-        fin = new Cell(fila, col);
-        grid[fila][col] = CellState.END;
+    public void setController(MazeController controller) {
+        this.controller = controller;
+        controller.setMatriz(cells);
     }
 
-    private void alternarPared(int fila, int col) {
-        if (inicio != null && inicio.getRow() == fila && inicio.getCol() == col) return;
-        if (fin != null && fin.getRow() == fila && fin.getCol() == col) return;
-
-        grid[fila][col] = (grid[fila][col] == CellState.WALL) ? CellState.EMPTY : CellState.WALL;
+    public Cell[][] getCells() {
+        return cells;
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+    public JButton getButton(int fila, int col) {
+        return buttons[fila][col];
+    }
 
-        for (int fila = 0; fila < filas; fila++) {
-            for (int col = 0; col < columnas; col++) {
-                switch (grid[fila][col]) {
-                    case WALL -> g.setColor(Color.BLACK);
-                    case START -> g.setColor(Color.GREEN);
-                    case END -> g.setColor(Color.RED);
-                    case PATH -> g.setColor(Color.BLUE);
-                    case VISITED -> g.setColor(Color.CYAN);
-                    default -> g.setColor(Color.WHITE);
+    public void limpiarCeldasVisitadas() {
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                Cell cell = cells[i][j];
+                if (cell.getState() == CellState.VISITED || cell.getState() == CellState.PATH) {
+                    cell.setState(CellState.EMPTY);
+                    buttons[i][j].setBackground(Color.WHITE);
                 }
-
-                g.fillRect(col * SIZE, fila * SIZE, SIZE, SIZE);
-                g.setColor(Color.GRAY);
-                g.drawRect(col * SIZE, fila * SIZE, SIZE, SIZE);
             }
         }
     }
 
-    public boolean[][] getMatriz() {
-        boolean[][] matriz = new boolean[filas][columnas];
-        for (int i = 0; i < filas; i++) {
-            for (int j = 0; j < columnas; j++) {
-                matriz[i][j] = (grid[i][j] != CellState.WALL);
+    public void mostrarResultado(SolveResults resultado) {
+        limpiarCeldasVisitadas();
+
+        for (Cell cell : resultado.getVisited()) {
+            if (cell != null && !cell.equals(controller.getStartCell()) && !cell.equals(controller.getEndCell())) {
+                cells[cell.getRow()][cell.getCol()].setState(CellState.VISITED);
+                buttons[cell.getRow()][cell.getCol()].setBackground(Color.CYAN);
             }
         }
-        return matriz;
+
+        for (Cell cell : resultado.getPath()) {
+            if (cell != null && !cell.equals(controller.getStartCell()) && !cell.equals(controller.getEndCell())) {
+                cells[cell.getRow()][cell.getCol()].setState(CellState.PATH);
+                buttons[cell.getRow()][cell.getCol()].setBackground(Color.BLUE);
+            }
+        }
+
+        actualizarInicioYFin();
     }
 
-    public Cell getInicio() {
-        return inicio;
-    }
-
-    public Cell getFin() {
-        return fin;
+    public void pintarPaso(int fila, int columna, Color color) {
+        buttons[fila][columna].setBackground(color);
     }
 
     public void resetear() {
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
-                if (grid[i][j] != CellState.WALL) {
-                    grid[i][j] = CellState.EMPTY;
+                Cell cell = cells[i][j];
+                if (cell.getState() != CellState.WALL) {
+                    cell.setState(CellState.EMPTY);
+                    buttons[i][j].setBackground(Color.WHITE);
                 }
             }
         }
-        if (inicio != null) grid[inicio.getRow()][inicio.getCol()] = CellState.START;
-        if (fin != null) grid[fin.getRow()][fin.getCol()] = CellState.END;
-
-        repaint();
+        actualizarInicioYFin();
     }
 
-    public void mostrarResultado(SolveResults resultado) {
-        resetear();
-
-        // Pintar visitados primero
-        for (Cell cell : resultado.getVisited()) {
-            if (!cell.equals(inicio) && !cell.equals(fin)) {
-                grid[cell.getRow()][cell.getCol()] = CellState.VISITED;
+    private void actualizarVista() {
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                Cell cell = cells[i][j];
+                switch (cell.getState()) {
+                    case EMPTY -> buttons[i][j].setBackground(Color.WHITE);
+                    case WALL -> buttons[i][j].setBackground(Color.BLACK);
+                    case START -> buttons[i][j].setBackground(Color.GREEN);
+                    case END -> buttons[i][j].setBackground(Color.RED);
+                    case PATH -> buttons[i][j].setBackground(Color.BLUE);
+                    case VISITED -> buttons[i][j].setBackground(Color.CYAN);
+                }
             }
         }
+    }
 
-        // Pintar camino después (sobrescribe VISITED si coinciden)
-        for (Cell cell : resultado.getPath()) {
-            if (!cell.equals(inicio) && !cell.equals(fin)) {
-                grid[cell.getRow()][cell.getCol()] = CellState.PATH;
-            }
+    private void actualizarInicioYFin() {
+        if (controller.getStartCell() != null) {
+            Cell s = controller.getStartCell();
+            buttons[s.getRow()][s.getCol()].setBackground(Color.GREEN);
         }
-
-        // Reafirmar posiciones de inicio y fin
-        if (inicio != null) grid[inicio.getRow()][inicio.getCol()] = CellState.START;
-        if (fin != null) grid[fin.getRow()][fin.getCol()] = CellState.END;
-
-        repaint();
+        if (controller.getEndCell() != null) {
+            Cell e = controller.getEndCell();
+            buttons[e.getRow()][e.getCol()].setBackground(Color.RED);
+        }
     }
 }

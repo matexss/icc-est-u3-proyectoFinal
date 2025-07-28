@@ -5,31 +5,42 @@ import models.AlgorithmResult;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Implementación de AlgorithmResultDAO que almacena resultados en un archivo CSV.
+ */
 public class AlgorithmResultDAOFile implements AlgorithmResultDAO {
 
-    private static final String FILE_PATH = "results.csv";
+    private final File archivo;
+
+    public AlgorithmResultDAOFile() {
+        this("results.csv");
+    }
+
+    public AlgorithmResultDAOFile(String rutaArchivo) {
+        this.archivo = new File(rutaArchivo);
+    }
 
     @Override
     public void guardarResultado(AlgorithmResult nuevo) {
         List<AlgorithmResult> existentes = obtenerResultados();
-        boolean actualizado = false;
+        boolean reemplazado = false;
 
         for (int i = 0; i < existentes.size(); i++) {
-            AlgorithmResult r = existentes.get(i);
-            if (r.getAlgorithmName().equalsIgnoreCase(nuevo.getAlgorithmName())) {
-                existentes.set(i, nuevo); // Actualiza
-                actualizado = true;
+            if (existentes.get(i).getAlgorithmName().equalsIgnoreCase(nuevo.getAlgorithmName())) {
+                existentes.set(i, nuevo);
+                reemplazado = true;
                 break;
             }
         }
 
-        if (!actualizado) {
+        if (!reemplazado) {
             existentes.add(nuevo);
         }
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_PATH))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(archivo, false))) {
             for (AlgorithmResult r : existentes) {
                 writer.println(r.toString()); // Formato: nombre,tiempo,longitud,timestamp
             }
@@ -41,8 +52,6 @@ public class AlgorithmResultDAOFile implements AlgorithmResultDAO {
     @Override
     public List<AlgorithmResult> obtenerResultados() {
         List<AlgorithmResult> resultados = new ArrayList<>();
-        File archivo = new File(FILE_PATH);
-
         if (!archivo.exists()) return resultados;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(archivo))) {
@@ -51,10 +60,10 @@ public class AlgorithmResultDAOFile implements AlgorithmResultDAO {
                 String[] partes = linea.split(",");
                 if (partes.length >= 4) {
                     String nombre = partes[0];
-                    long tiempo = Long.parseLong(partes[1]);
-                    int longitud = Integer.parseInt(partes[2]);
-                    LocalDateTime fecha = LocalDateTime.parse(partes[3]);
-                    resultados.add(new AlgorithmResult(nombre, tiempo, longitud));
+                    int longitud = Integer.parseInt(partes[1]);
+                    long tiempo = Long.parseLong(partes[2]);
+                    LocalDateTime timestamp = LocalDateTime.parse(partes[3]);
+                    resultados.add(new AlgorithmResult(nombre, longitud, tiempo));
                 }
             }
         } catch (IOException | NumberFormatException e) {
@@ -66,9 +75,12 @@ public class AlgorithmResultDAOFile implements AlgorithmResultDAO {
 
     @Override
     public void limpiarResultados() {
-        File archivo = new File(FILE_PATH);
-        if (archivo.exists()) {
-            archivo.delete();
+        if (archivo.exists() && archivo.delete()) {
+            try {
+                archivo.createNewFile(); // Regenerar archivo vacío
+            } catch (IOException e) {
+                System.err.println("Error al regenerar archivo: " + e.getMessage());
+            }
         }
     }
 }

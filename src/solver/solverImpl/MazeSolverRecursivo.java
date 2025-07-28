@@ -1,56 +1,50 @@
 package solver.solverImpl;
 
 import solver.MazeSolver;
-import models.Cell;
-import models.SolveResults;
+import models.*;
 
 import java.util.*;
 
+/**
+ * Algoritmo recursivo simple (solo abajo y derecha).
+ */
 public class MazeSolverRecursivo implements MazeSolver {
 
+    private Set<Cell> visited;
+    private List<Cell> path;
+    private Cell[][] maze;
+    private Cell end;
+
     @Override
-    public SolveResults getPath(boolean[][] grid, Cell start, Cell end) {
-        List<Cell> path = new ArrayList<>();
-        Set<Cell> visited = new HashSet<>();
+    public SolveResults getPath(Cell[][] maze, Cell start, Cell end) {
+        this.visited = new LinkedHashSet<>();
+        this.path = new ArrayList<>();
+        this.maze = maze;
+        this.end = end;
 
-        if (grid == null || grid.length == 0) {
-            return new SolveResults(path, visited);
-        }
-
-        if (findPath(grid, start, end, path, visited)) {
-            return new SolveResults(path, visited);
-        }
-
-        return new SolveResults(new ArrayList<>(), visited);
+        findPath(start);
+        return new SolveResults(path, visited);
     }
 
-    /**
-     * Método recursivo simple que se mueve solo hacia abajo y derecha.
-     */
-    private boolean findPath(boolean[][] grid, Cell current, Cell end, List<Cell> path, Set<Cell> visited) {
-        int row = current.getRow();
-        int col = current.getCol();
+    private boolean findPath(Cell current) {
+        int r = current.getRow(), c = current.getCol();
 
-        // Verificar si está fuera de rango o en una celda inválida
-        if (row < 0 || row >= grid.length || col < 0 || col >= grid[0].length || !grid[row][col] || visited.contains(current)) {
-            return false;
-        }
+        if (!isValid(r, c) || visited.contains(current)) return false;
 
         visited.add(current);
         path.add(current);
 
-        if (current.equals(end)) {
-            return true;
-        }
+        if (current.equals(end)) return true;
 
-        // Movimiento: solo abajo y derecha
-        if (findPath(grid, new Cell(row + 1, col), end, path, visited) ||
-                findPath(grid, new Cell(row, col + 1), end, path, visited)) {
-            return true;
-        }
+        // Movimiento solo a la derecha y abajo, pero con validación previa
+        if (r + 1 < maze.length && findPath(maze[r + 1][c])) return true;
+        if (c + 1 < maze[0].length && findPath(maze[r][c + 1])) return true;
 
-        // Retroceso si no encuentra salida
         path.remove(path.size() - 1);
         return false;
+    }
+
+    private boolean isValid(int r, int c) {
+        return r >= 0 && r < maze.length && c >= 0 && c < maze[0].length && maze[r][c].getState() != CellState.WALL;
     }
 }

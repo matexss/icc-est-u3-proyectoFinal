@@ -3,17 +3,20 @@ package models;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * Representa el resultado de un algoritmo de búsqueda.
+ */
 public class AlgorithmResult implements Serializable {
 
-    private String algorithmName;
-    private long executionTimeMillis;
-    private int pathLength;
-    private LocalDateTime timestamp;
+    private final String algorithmName;
+    private final int pathLength;
+    private final long executionTimeMillis;
+    private final LocalDateTime timestamp;
 
-    public AlgorithmResult(String algorithmName, long executionTimeMillis, int pathLength) {
+    public AlgorithmResult(String algorithmName, int pathLength, long executionTimeMillis) {
         this.algorithmName = algorithmName;
-        this.executionTimeMillis = executionTimeMillis;
         this.pathLength = pathLength;
+        this.executionTimeMillis = executionTimeMillis;
         this.timestamp = LocalDateTime.now();
     }
 
@@ -21,12 +24,12 @@ public class AlgorithmResult implements Serializable {
         return algorithmName;
     }
 
-    public long getExecutionTimeMillis() {
-        return executionTimeMillis;
-    }
-
     public int getPathLength() {
         return pathLength;
+    }
+
+    public long getExecutionTimeMillis() {
+        return executionTimeMillis;
     }
 
     public LocalDateTime getTimestamp() {
@@ -35,6 +38,6 @@ public class AlgorithmResult implements Serializable {
 
     @Override
     public String toString() {
-        return algorithmName + "," + executionTimeMillis + "," + pathLength + "," + timestamp;
+        return algorithmName + "," + pathLength + "," + executionTimeMillis + "," + timestamp;
     }
 }

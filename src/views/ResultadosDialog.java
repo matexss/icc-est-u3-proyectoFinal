@@ -8,9 +8,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * Diálogo para visualizar los resultados de los algoritmos ejecutados,
+ * incluyendo una tabla y un gráfico de barras de tiempo de ejecución.
+ */
 public class ResultadosDialog extends JDialog {
 
-    private MazeController controller;
+    private final MazeController controller;
     private JTable tabla;
     private DefaultTableModel tableModel;
     private JPanel panelGrafico;
@@ -21,7 +25,7 @@ public class ResultadosDialog extends JDialog {
         this.controller = controller;
 
         setLayout(new BorderLayout());
-        setSize(700, 700);
+        setSize(750, 500);
         setLocationRelativeTo(parent);
 
         initComponents();
@@ -29,12 +33,14 @@ public class ResultadosDialog extends JDialog {
 
     private void initComponents() {
         // Tabla
-        tableModel = new DefaultTableModel(new String[]{"Algoritmo", "Tiempo (ms)", "Longitud"}, 0);
+        tableModel = new DefaultTableModel(new String[]{"Algoritmo", "Tiempo (ms)", "Longitud del camino"}, 0);
         tabla = new JTable(tableModel);
+        tabla.setEnabled(false);
         JScrollPane scrollPane = new JScrollPane(tabla);
+        scrollPane.setPreferredSize(new Dimension(700, 150));
         add(scrollPane, BorderLayout.NORTH);
 
-        // Panel de gráfico personalizado
+        // Panel gráfico
         panelGrafico = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -42,24 +48,27 @@ public class ResultadosDialog extends JDialog {
                 dibujarGrafico(g);
             }
         };
-        panelGrafico.setPreferredSize(new Dimension(680, 300));
+        panelGrafico.setPreferredSize(new Dimension(700, 250));
         add(panelGrafico, BorderLayout.CENTER);
 
-        // Botón limpiar
+        // Botón inferior
         JButton btnLimpiar = new JButton("Limpiar Resultados");
         btnLimpiar.addActionListener(e -> {
             controller.limpiarResultados();
             actualizar();
         });
-        add(btnLimpiar, BorderLayout.SOUTH);
 
-        // Cargar resultados
+        JPanel southPanel = new JPanel();
+        southPanel.add(btnLimpiar);
+        add(southPanel, BorderLayout.SOUTH);
+
         actualizar();
     }
 
     private void actualizar() {
         resultados = controller.listarResultados();
         tableModel.setRowCount(0);
+
         for (AlgorithmResult r : resultados) {
             tableModel.addRow(new Object[]{
                     r.getAlgorithmName(),
@@ -67,11 +76,13 @@ public class ResultadosDialog extends JDialog {
                     r.getPathLength()
             });
         }
+
         panelGrafico.repaint();
     }
 
     private void dibujarGrafico(Graphics g) {
         if (resultados == null || resultados.isEmpty()) {
+            g.setColor(Color.BLACK);
             g.drawString("No hay datos para mostrar", 20, 20);
             return;
         }
@@ -79,24 +90,30 @@ public class ResultadosDialog extends JDialog {
         int width = panelGrafico.getWidth();
         int height = panelGrafico.getHeight();
 
-        int margin = 40;
+        int margin = 50;
         int barWidth = (width - 2 * margin) / resultados.size();
-        long maxTime = resultados.stream().mapToLong(AlgorithmResult::getExecutionTimeMillis).max().orElse(1);
+        long maxTime = resultados.stream()
+                .mapToLong(AlgorithmResult::getExecutionTimeMillis)
+                .max()
+                .orElse(1);
 
-        g.drawString("Gráfico de Tiempos (ms)", margin, 20);
+        g.setColor(Color.BLACK);
+        g.drawString("Gráfico de Tiempos de Ejecución (ms)", margin, 20);
 
         for (int i = 0; i < resultados.size(); i++) {
             AlgorithmResult r = resultados.get(i);
             int x = margin + i * barWidth;
             int barHeight = (int) ((r.getExecutionTimeMillis() * 1.0 / maxTime) * (height - 80));
-            int y = height - barHeight - margin;
+            int y = height - barHeight - 40;
 
             g.setColor(Color.BLUE);
             g.fillRect(x, y, barWidth - 10, barHeight);
 
             g.setColor(Color.BLACK);
             g.drawRect(x, y, barWidth - 10, barHeight);
-            g.drawString(r.getAlgorithmName(), x + 2, height - 20);
+
+            g.setFont(new Font("Arial", Font.PLAIN, 10));
+            g.drawString(r.getAlgorithmName(), x + 2, height - 25);
             g.drawString(r.getExecutionTimeMillis() + " ms", x + 2, y - 5);
         }
     }

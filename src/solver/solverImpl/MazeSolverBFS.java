@@ -1,62 +1,60 @@
 package solver.solverImpl;
 
 import solver.MazeSolver;
-import models.Cell;
-import models.SolveResults;
+import models.*;
 
 import java.util.*;
 
+/**
+ * Implementación del algoritmo BFS para resolver laberintos.
+ */
 public class MazeSolverBFS implements MazeSolver {
 
     @Override
-    public SolveResults getPath(boolean[][] grid, Cell start, Cell end) {
-        Queue<Cell> queue = new LinkedList<>();
-        Set<Cell> visited = new HashSet<>();
+    public SolveResults getPath(Cell[][] maze, Cell start, Cell end) {
+        int rows = maze.length;
+        int cols = maze[0].length;
+        boolean[][] visitedMatrix = new boolean[rows][cols];
         Map<Cell, Cell> parent = new HashMap<>();
-        queue.offer(start);
-        visited.add(start);
+        Queue<Cell> queue = new LinkedList<>();
+        List<Cell> visited = new ArrayList<>();
+
+        queue.add(start);
+        visitedMatrix[start.getRow()][start.getCol()] = true;
 
         while (!queue.isEmpty()) {
             Cell current = queue.poll();
-            if (current.equals(end)) {
-                return reconstructPath(start, end, parent, visited);
-            }
+            visited.add(current);
 
-            for (Cell neighbor : getNeighbors(current, grid)) {
-                if (!visited.contains(neighbor)) {
-                    visited.add(neighbor);
+            if (current.equals(end)) break;
+
+            for (int[] dir : new int[][]{{1,0},{-1,0},{0,1},{0,-1}}) {
+                int r = current.getRow() + dir[0];
+                int c = current.getCol() + dir[1];
+
+                if (r >= 0 && r < rows && c >= 0 && c < cols && !visitedMatrix[r][c] && maze[r][c].getState() != CellState.WALL) {
+                    Cell neighbor = maze[r][c];
+                    visitedMatrix[r][c] = true;
                     parent.put(neighbor, current);
                     queue.offer(neighbor);
                 }
             }
         }
 
-        // No se encontró camino
-        return new SolveResults(new ArrayList<>(), visited);
-    }
-
-    private List<Cell> getNeighbors(Cell cell, boolean[][] grid) {
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        List<Cell> neighbors = new ArrayList<>();
-        for (int[] d : dirs) {
-            int r = cell.getRow() + d[0];
-            int c = cell.getCol() + d[1];
-            if (r >= 0 && r < grid.length && c >= 0 && c < grid[0].length && grid[r][c]) {
-                neighbors.add(new Cell(r, c));
-            }
-        }
-        return neighbors;
-    }
-
-    private SolveResults reconstructPath(Cell start, Cell end, Map<Cell, Cell> parent, Set<Cell> visited) {
         List<Cell> path = new ArrayList<>();
         Cell current = end;
-        while (!current.equals(start)) {
+        while (parent.containsKey(current)) {
             path.add(current);
             current = parent.get(current);
         }
-        path.add(start);
-        Collections.reverse(path);
-        return new SolveResults(path, visited);
+
+        if (current.equals(start)) {
+            path.add(start);
+            Collections.reverse(path);
+        } else {
+            path.clear(); // no se llegó
+        }
+
+        return new SolveResults(path, new HashSet<>(visited));
     }
 }

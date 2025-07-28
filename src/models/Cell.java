@@ -2,13 +2,19 @@ package models;
 
 import java.io.Serializable;
 
+/**
+ * Representa una celda dentro del laberinto.
+ */
 public class Cell implements Serializable {
-    private int row;
-    private int col;
+
+    private final int row;
+    private final int col;
+    private CellState state;
 
     public Cell(int row, int col) {
         this.row = row;
         this.col = col;
+        this.state = CellState.EMPTY;
     }
 
     public int getRow() {
@@ -19,9 +25,17 @@ public class Cell implements Serializable {
         return col;
     }
 
+    public CellState getState() {
+        return state;
+    }
+
+    public void setState(CellState state) {
+        this.state = state;
+    }
+
     @Override
     public String toString() {
-        return "(" + row + "," + col + ")";
+        return "(" + row + "," + col + ") - " + state;
     }
 
     @Override
@@ -34,6 +48,6 @@ public class Cell implements Serializable {
 
     @Override
     public int hashCode() {
-        return row * 31 + col;
+        return 31 * row + col;
     }
 }

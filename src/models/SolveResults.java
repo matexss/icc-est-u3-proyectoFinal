@@ -3,11 +3,13 @@ package models;
 import java.util.List;
 import java.util.Set;
 
-
+/**
+ * Contiene el camino encontrado y las celdas exploradas durante la resolución del laberinto.
+ */
 public class SolveResults {
 
-    private List<Cell> path;
-    private Set<Cell> visited;
+    private final List<Cell> path;
+    private final Set<Cell> visited;
 
     public SolveResults(List<Cell> path, Set<Cell> visited) {
         this.path = path;
